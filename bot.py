@@ -1,12 +1,25 @@
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters, ConversationHandler
 
-TOKEN = "8046683823:AAHAsh3lbVcR-9pz5kOlkXezxpKdM1U9V30"
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
 logging.basicConfig(level=logging.INFO)
 
 CATEGORY, COST, TIMES = range(3)
+
+def run_dummy_server():
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"Bot is running!")
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), Handler)
+    server.serve_forever()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -55,6 +68,9 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 def main():
+    # Запускаем dummy HTTP сервер для Render
+    threading.Thread(target=run_dummy_server, daemon=True).start()
+
     app = ApplicationBuilder().token(TOKEN).build()
 
     conv_handler = ConversationHandler(
