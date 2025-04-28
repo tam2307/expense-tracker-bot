@@ -1,4 +1,11 @@
 import os
+import sys
+
+# Разрешаем запуск только на Render
+if not os.environ.get("RENDER"):
+    print("❌ Этот бот можно запускать только на Render.com!")
+    sys.exit(1)
+
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
